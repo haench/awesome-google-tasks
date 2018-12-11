@@ -13,6 +13,7 @@ import Tasks from './tasks.component';
 import config from './../config';
 import googleTasksApi from 'google-tasks-api';
 import { Dialog, DialogTitle, DialogContent, DialogActions } from '@material-ui/core';
+import arrayMove from 'array-move';
 
 const theme = createMuiTheme({
   palette: {
