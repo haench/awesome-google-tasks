@@ -166,6 +166,7 @@ class App extends Component {
               onDeleteTask={this.handleDeleteTask.bind(this)}
               onEditTask={this.handleEditTask.bind(this)}
               onNewTask={this.handleNewTask.bind(this)}
+              onSortEnd={this.handleSortEnd.bind(this)}
               onSelect={() => this.setState({ selectedItem: 'tasks' })}
             />
 
@@ -263,7 +264,6 @@ class App extends Component {
   }
 
   setTasks(tasks) {
-    tasks = tasks.sort((a, b) => a.position > b.position ? 1 : b.position > a.position ? -1 : 0);
     this.setState({ tasks })
   }
 
@@ -313,7 +313,7 @@ class App extends Component {
       this.setState({ isLoading: true });
       const newTask = await googleTasksApi.insertTask({ taskListId: this.state.selectedList.id, title: '' });
       newTask.position = this.state.nextNewTaskPositon;
-      const newTasks = [...this.state.tasks, newTask]
+      const newTasks = [newTask,...this.state.tasks]
       this.setTasks(newTasks);
       this.setState({ isLoading: false, nextNewTaskPositon: this.state.nextNewTaskPositon - 1 });
     }
@@ -356,9 +356,31 @@ class App extends Component {
     }, 50);
   }
 
+  handleSortEnd(order, sortable, event) { 
+    //console.log('onSortEnd',order, sortable, event);
+    
+    var currentTaskid = this.state.tasks[event.oldIndex].id;
+    
+    console.log(currentTaskid);
+    console.log('onSortEnd before',this.state.tasks);
+    var newTasks = arrayMove(this.state.tasks, event.oldIndex, event.newIndex);
+    this.setTasks(newTasks);
+    console.log('onSortEnd after',this.state.tasks);
+    var siblingTaskid = (event.newIndex > 0) ? newTasks[event.newIndex-1].id : "";
+    if (this.taskUpdateTimer) clearTimeout(this.taskUpdateTimer);
+    
+    this.taskUpdateTimer = setTimeout(async () => {
+      await googleTasksApi.moveTask({ taskListId: this.state.selectedList.id, taskId: currentTaskid, previous : siblingTaskid });
+      this.taskUpdateTimer = undefined;
+      this.showNotification('All changes saved');
+    }, 50);
+  
+  }
+  
   async handleTaskCheck(changedTask) {
-    const newStatus = (changedTask.status === 'completed' ? 'needsAction' : 'completed');
-    const newTasks = this.state.tasks.map(task => task.id === changedTask.id ? { ...task, status: newStatus } : task);
+    const newStatus = (changedTask.status === 'completed' ? 'needsAction' : 'completed');    
+    const newTasks = this.state.tasks;
+    newTasks.find(task => task.id === changedTask.id).status = newStatus;
     this.setTasks(newTasks);
     await googleTasksApi.updateTask({ taskListId: this.state.selectedList.id, taskId: changedTask.id, status: newStatus });
   }

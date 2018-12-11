@@ -7,6 +7,7 @@ import Icon from '@material-ui/core/Icon';
 import Typography from '@material-ui/core/Typography';
 import { withStyles } from '@material-ui/core/styles';
 import Task from './task.component';
+import Sortable from 'react-sortablejs';
 
 const styles = theme => ({
     content: {
@@ -57,9 +58,16 @@ class Tasks extends Component {
                             </Typography>
                         </CardContent>
                     }
+                    <Sortable
+                        tag="ul"
+                        onChange={(order, sortable, evt) => {
+                            this.props.onSortEnd(order, sortable, evt);
+                        }}
+                    >                       
 
                     {this.props.tasks.map((task, index) =>
                         <Task
+                            data-id={task.id}
                             task={task}
                             index={index}
                             key={task.id}
@@ -71,6 +79,7 @@ class Tasks extends Component {
                             onTaskUpdate={newTitle => this.props.onTaskUpdate(task, newTitle)}
                             onCheck={() => this.props.onTaskCheck(task)} />
                     )}
+                    </Sortable>
                 </Card>
 
                 {this.props.selectedList.id &&
