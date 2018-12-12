@@ -36,7 +36,7 @@ class Task extends Component {
                     readOnly={this.props.isReadOnly}
                     value={this.props.task.title}
                     className="task-title"
-                    onChange={event => this.props.onTaskUpdate(event.target.value)}
+                    onBlur={event => this.props.onTaskUpdate(event.target.value)}
                     onKeyUp={this.handleKeyUp.bind(this)}
                     onKeyDown={this.handleKeyDown.bind(this)} />
 
